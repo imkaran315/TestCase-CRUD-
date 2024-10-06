@@ -9,21 +9,23 @@ import UIKit
 
 class ProfileVC: UIViewController {
 
+    @IBOutlet weak var deleteProfileView: UIView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupDeleteView()
+    }
+}
 
-        // Do any additional setup after loading the view.
+extension ProfileVC {
+    private func setupDeleteView(){
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(showDeletePrompt))
+        deleteProfileView.isUserInteractionEnabled = true
+        deleteProfileView.addGestureRecognizer(tapGesture)
     }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    @objc func showDeletePrompt(){
+        print("Delete?")
     }
-    */
 
 }

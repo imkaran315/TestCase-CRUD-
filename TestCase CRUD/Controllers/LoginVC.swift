@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import FirebaseAuth
 
 class LoginVC: UIViewController {
 
@@ -19,6 +20,10 @@ class LoginVC: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupLoginBtn()
+    }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        self.view.endEditing(true)
     }
 
     @IBAction func forgotPassowordPressed(_ sender: Any) {
@@ -39,11 +44,23 @@ extension LoginVC{
     
     private func handleLogin(){
         print("Login Pressed")
+        
+        Auth.auth().signIn(withEmail: emailField.text ?? "", password: passwordFiels.text ?? ""){ [weak self] authResult, error in
+            
+            if error != nil{
+                print("error in signin : \(String(describing: error))")
+                return
+            }
+            
+            guard let vc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "DashboardVC") as? DashboardVC else {return}
+            
+            self?.navigationController?.pushViewController(vc, animated: true)
+        }
     }
     
     private func handleSignup(){
         guard let vc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "SignUpVC") as? SignUpVC else {return}
         
-        self.present(vc, animated: true)
-    }   
+        self.navigationController?.pushViewController(vc, animated: true)
+    }
 }
