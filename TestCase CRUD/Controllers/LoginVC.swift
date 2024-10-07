@@ -10,6 +10,8 @@ import FirebaseAuth
 
 class LoginVC: UIViewController {
 
+    var userModel: UserModel?
+    
     @IBOutlet weak var emailField: UITextField!
     @IBOutlet weak var passwordFiels: UITextField!
     
@@ -45,16 +47,35 @@ extension LoginVC{
     private func handleLogin(){
         print("Login Pressed")
         
-        Auth.auth().signIn(withEmail: emailField.text ?? "", password: passwordFiels.text ?? ""){ [weak self] authResult, error in
+        guard let email = emailField.text else{
+            print("Enter Valid Email")
+            return
+        }
+        
+        guard let password = passwordFiels.text else{
+            print("Enter Password")
+            return
+        }
+        
+        Auth.auth().signIn(withEmail: email, password: password){ [weak self] authResult, error in
             
             if error != nil{
-                print("error in signin : \(String(describing: error))")
+                print("error in signin : \(String(describing: error?.localizedDescription))")
                 return
             }
             
-            guard let vc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "DashboardVC") as? DashboardVC else {return}
-            
-            self?.navigationController?.pushViewController(vc, animated: true)
+            // on successful login
+            if let user = authResult?.user {
+                UserDefaults.standard.set(user.uid, forKey: "userId")
+                self?.setupUserModel(){
+                    guard let vc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "DashboardVC") as? DashboardVC else {return}
+                    vc.userModel = self?.userModel
+                    vc.isNewUser = true // change it
+                    self?.navigationController?.pushViewController(vc, animated: true)
+                }
+            }
+           
+           
         }
     }
     
@@ -63,4 +84,14 @@ extension LoginVC{
         
         self.navigationController?.pushViewController(vc, animated: true)
     }
+    
+    private func setupUserModel(completion: @escaping ()-> Void){
+        FirebaseManager().getUserInfo {[weak self] status, userModel  in
+            if status, let userModel = userModel{
+                self?.userModel = userModel
+                completion()
+            }
+        }
+    }
 }
+
