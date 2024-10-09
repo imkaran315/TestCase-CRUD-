@@ -11,7 +11,6 @@ import FirebaseFirestore
 
 class SignUpVC: UIViewController {
 
-    var userModel : UserModel?
     // IB Outlets
     @IBOutlet weak var firstNameField: UITextField!
     @IBOutlet weak var lastNameField: UITextField!
@@ -85,6 +84,8 @@ extension SignUpVC {
             
             if let user = authDataResult?.user{
                 UserDefaults.standard.set(user.uid, forKey: "userId")
+                UserDefaults.standard.set(UUID().uuidString, forKey: "sessionId")
+
                 self?.addInfoToStore(for: user)
             }
             
@@ -92,7 +93,6 @@ extension SignUpVC {
             
             vc.displayName = self?.firstNameField.text
             vc.isNewUser = true
-            vc.userModel = self?.userModel
             self?.navigationController?.pushViewController(vc, animated: true)
         }
     }
@@ -118,11 +118,11 @@ extension SignUpVC {
             "lastName": lastName,
             "tenantId": "TESLA",
             "role": "securityLevel1",
-            "dateCreated": Int(Date().timeIntervalSince1970),
+            "dateCreated": Timestamp(),
             "mobileNumber": mobileNumber ?? ""
         ]
         
-        self.userModel = userInfo.toUserModel() // also locally storing userModel created
+        UserModelManager.shared.userModel = userInfo.toUserModel() // also locally storing userModel created
         
         let db = Firestore.firestore()
         

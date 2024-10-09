@@ -22,6 +22,7 @@ class LoginVC: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupLoginBtn()
+ 
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -67,9 +68,10 @@ extension LoginVC{
             // on successful login
             if let user = authResult?.user {
                 UserDefaults.standard.set(user.uid, forKey: "userId")
+                UserDefaults.standard.set(UUID().uuidString, forKey: "sessionId")
+                
                 self?.setupUserModel(){
                     guard let vc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "DashboardVC") as? DashboardVC else {return}
-                    vc.userModel = self?.userModel
                     vc.isNewUser = true // change it
                     self?.navigationController?.pushViewController(vc, animated: true)
                 }
@@ -86,9 +88,14 @@ extension LoginVC{
     }
     
     private func setupUserModel(completion: @escaping ()-> Void){
-        FirebaseManager().getUserInfo {[weak self] status, userModel  in
-            if status, let userModel = userModel{
-                self?.userModel = userModel
+        FirebaseManager().getUserInfo {status in
+            if status{
+                
+                // download images from asynchronously
+                DispatchQueue.global().async {
+                    FirebaseManager().retrieveImagesFromStorage {_ in}
+                }
+                
                 completion()
             }
         }

@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3130E2CD2CB3EF0E00DF1783 /* FirebaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3130E2CC2CB3EF0E00DF1783 /* FirebaseManager.swift */; };
 		31D40BE92CADD7CD00802A42 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 31D40BE82CADD7CD00802A42 /* FirebaseAuth */; };
 		31D40BEB2CADD7CD00802A42 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 31D40BEA2CADD7CD00802A42 /* FirebaseDatabase */; };
 		31D40BED2CADD7CD00802A42 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 31D40BEC2CADD7CD00802A42 /* FirebaseFirestore */; };
@@ -15,7 +14,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		3130E2CC2CB3EF0E00DF1783 /* FirebaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseManager.swift; sourceTree = "<group>"; };
 		31D40BCD2CADD6AB00802A42 /* TestCase CRUD.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "TestCase CRUD.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -60,7 +58,6 @@
 			children = (
 				31D40BCF2CADD6AB00802A42 /* TestCase CRUD */,
 				31D40BCE2CADD6AB00802A42 /* Products */,
-				3130E2CC2CB3EF0E00DF1783 /* FirebaseManager.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -153,7 +150,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3130E2CD2CB3EF0E00DF1783 /* FirebaseManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

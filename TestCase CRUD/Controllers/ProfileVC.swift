@@ -13,9 +13,7 @@ class ProfileVC: UIViewController {
     @IBOutlet weak var userNameLbl: UILabel!
     @IBOutlet weak var userNumberLbl: UILabel!
     @IBOutlet weak var deleteProfileView: UIView!
-    
     @IBOutlet weak var editProfileBtn: UIButton!
-    var userModel : UserModel?
     
     @IBOutlet weak var accountLbl: UILabel!
     @IBOutlet weak var createdOnLbl: UILabel!
@@ -38,35 +36,39 @@ extension ProfileVC {
     
     private func setupView(){
         editProfileBtn.layer.cornerRadius = 10
+        profileImageView.contentMode = .scaleAspectFill
+        profileImageView.layer.cornerRadius = 5
     }
     
     private func setupData(){
-        guard let userModel else {
+        guard let userModel = UserModelManager.shared.userModel else {
             print("userModel not found in Profile Screen")
             return
         }
         
         userNameLbl.text = userModel.firstName + " " + userModel.lastName
-        userNumberLbl.text = userModel.email
-        accountLbl.text = userModel.userId
-        let date = Date(timeIntervalSince1970: TimeInterval(userModel.dateCreated))
-        createdOnLbl.text = date.formatted(date: .abbreviated, time: .omitted)
+        userNumberLbl.text = userModel.mobileNumber
+        accountLbl.text = userModel.email
+        createdOnLbl.text = userModel.dateCreated.dateValue().formatted(date: .abbreviated, time: .omitted)
         roleLbl.text = userModel.role
         tenantLbl.text = userModel.tenantId
         
-        
+        if let profileURL = URL(string: userModel.photoURL){
+            profileURL.loadImage {[weak self] image in
+                if let image{
+                    self?.profileImageView.image = image
+                }
+            }
+        }
     }
     
     private func openEditScreen(){
         guard let vc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "EditProfileVC") as? EditProfileVC else {return}
         
-        vc.userModel = self.userModel
-        
         // defining what to do when dismissed
         vc.onDismissClosure = {[weak self] in
-            FirebaseManager().getUserInfo { status, userModel in
-                if status, let userModel = userModel{
-                    self?.userModel = userModel
+            FirebaseManager().getUserInfo { status in
+                if status{
                     self?.setupData()
                 }
             }
@@ -91,7 +93,7 @@ extension ProfileVC {
             promptView.isHidden = true
         }
         
-        promptView.cancelBtnClosure = { [weak self] in
+        promptView.cancelBtnClosure = {
             print("cancel")
             promptView.isHidden = true
         }
@@ -112,7 +114,7 @@ extension ProfileVC {
                 self.navigationController?.pushViewController(vc, animated: true)
             }
             else{
-                print("Could Not delete account")
+                print("Could not delete account")
             }
         }
     }

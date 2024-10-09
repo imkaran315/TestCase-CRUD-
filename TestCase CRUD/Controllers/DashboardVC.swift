@@ -19,11 +19,6 @@ class DashboardVC: UIViewController {
     @IBOutlet weak var welcomeLbl: UILabel!
     @IBOutlet weak var welcomeTextLbl: UILabel!
     
-    var userModel : UserModel?{
-        didSet{
-            print("usermodel set")
-        }
-    }
     var displayName : String? = nil
     var isNewUser = false
     var expandableButton: ExpandableButton!
@@ -33,6 +28,9 @@ class DashboardVC: UIViewController {
         setupView()
         setupExpandableButton()
         setupProfileImage()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
         setupData()
     }
     
@@ -44,7 +42,7 @@ class DashboardVC: UIViewController {
 
 extension DashboardVC {
     private func setupView() {
-        print("setup New User View called")
+        print("setup view called")
             
         if isNewUser == false {
             // animates to hide the new user view
@@ -55,7 +53,8 @@ extension DashboardVC {
             }
         }
         else {
-            self.welcomeLbl.text = "Welcome, \(self.userModel?.firstName ?? "")"
+            let firstName = UserModelManager.shared.userModel?.firstName
+            self.welcomeLbl.text = "Welcome, \(firstName ?? "")"
             
             self.newUserView.alpha = self.isNewUser ? 1 : 0
             self.profileImageView.alpha = 0
@@ -74,17 +73,30 @@ extension DashboardVC {
     
     private func setupExpandableButton() {
         let buttonFrame = CGRect(x: view.frame.width - 80, y: view.frame.height - 100, width: 51, height: 51)
-        expandableButton = ExpandableButton(frame: buttonFrame, parentView: view)
+        let _ = ExpandableButton(frame: buttonFrame, parentView: self.view, actions: [
+            {
+                print("Action 1")
+                self.slideInGallery()
+            },
+            { print("Action 2") },
+            { print("Action 3") },
+            { print("Action 4") }
+        ])
+    }
+    
+    private func slideInGallery(){
+        print("slideInGalleryView")
+        let galleryVC = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "GalleryVC")
+        self.navigationController?.pushViewController(galleryVC, animated: true)
     }
     
     private func setupProfileImage() {
-        
-        profileImageView.layer.cornerRadius = 3
         profileImageView.layer.shadowColor = UIColor.black.cgColor
         profileImageView.layer.shadowOpacity = 0.5
         profileImageView.layer.shadowRadius = 4
         profileImageView.layer.shadowOffset = CGSize(width: 2, height: 2)
-        profileImageView.backgroundColor = .red
+        profileImageView.contentMode = .scaleAspectFill
+        profileImageView.layer.cornerRadius = 5
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(openProfileInfo))
         profileImageView.addGestureRecognizer(tapGesture)
@@ -94,17 +106,20 @@ extension DashboardVC {
     @objc func openProfileInfo() {
         print("open profile info")
         guard let vc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(identifier: "ProfileVC") as? ProfileVC else {return}
-        vc.userModel = self.userModel
         self.navigationController?.pushViewController(vc, animated: true)
     }
     
     private func setupData() {
-        if let userModel{
-            DispatchQueue.main.async {
-                self.tenantLbl.text = userModel.tenantId
-                self.statusLbl.text = userModel.role
-                self.displayName = userModel.firstName
+        if let userModel = UserModelManager.shared.userModel{
+            if let profileURL = URL(string: userModel.photoURL){
+                profileURL.loadImage {[weak self] image in
+                    if let image{
+                        self?.profileImageView.image = image
+                    }
+                }
             }
+            self.tenantLbl.text = userModel.tenantId
+            self.statusLbl.text = userModel.role
         }
         
     }
