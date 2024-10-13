@@ -53,10 +53,25 @@ extension ProfileVC {
         roleLbl.text = userModel.role
         tenantLbl.text = userModel.tenantId
         
-        if let profileURL = URL(string: userModel.photoURL){
-            profileURL.loadImage {[weak self] image in
-                if let image{
-                    self?.profileImageView.image = image
+        setupProfilePicture()
+    }
+    
+    private func setupProfilePicture(){
+        guard let userModel = UserModelManager.shared.userModel else {return}
+        let profileURL = userModel.photoURL
+        
+        // checking and applying image from local
+        if let profileImageItem = UserModelManager.shared.imageItems.first(where: { $0.imageUrl == profileURL}) {
+            if let profileImage = UserModelManager.shared.images[profileImageItem.imageId]{
+                self.profileImageView.image = profileImage
+            }
+        }else{
+            // if image is not available locally
+            if let profileURL = URL(string: userModel.photoURL){
+                profileURL.loadImage {[weak self] image in
+                    if let image{
+                        self?.profileImageView.image = image
+                    }
                 }
             }
         }

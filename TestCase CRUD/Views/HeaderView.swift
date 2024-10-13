@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import FirebaseCore
 
 class HeaderView: UICollectionReusableView {
     
@@ -31,11 +32,11 @@ class HeaderView: UICollectionReusableView {
         daysAgoLabel.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            dateLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
-            dateLabel.topAnchor.constraint(equalTo: topAnchor, constant: 5),
+            daysAgoLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
+            daysAgoLabel.topAnchor.constraint(equalTo: topAnchor, constant: 10),
             
-            daysAgoLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
-            daysAgoLabel.topAnchor.constraint(equalTo: topAnchor, constant: 5)
+            dateLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
+            dateLabel.topAnchor.constraint(equalTo: topAnchor, constant: 10)
         ])
     }
     
@@ -43,13 +44,12 @@ class HeaderView: UICollectionReusableView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func configure(with date: Date) {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .long
-        dateLabel.text = formatter.string(from: date)
+    func configure(with date: Timestamp) {
+        dateLabel.text = date.dateValue().formatted(date: .abbreviated, time: .omitted)
         
         // Calculate days ago
-        let daysAgo = Calendar.current.dateComponents([.day], from: date, to: Date()).day ?? 0
+
+        guard let daysAgo = Calendar.current.dateComponents([.dayOfYear], from: date.dateValue(), to: .now).dayOfYear else {return}
         
         if daysAgo == 0{
             daysAgoLabel.text = "Today"

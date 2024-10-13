@@ -28,18 +28,18 @@ class GalleryVC: UIViewController{
     override func viewDidLoad() {
         super.viewDidLoad()
         setupView()
-        getData()
         setupCollectionView()
+        convertToSections()
         
-        collectionView.center.x = view.frame.width * 0.8
-        headingView.center.x = view.frame.width * 0.5
+        collectionView.center.x = view.frame.width
+        headingView.center.x = view.frame.width
         
         NotificationCenter().addObserver(self, selector: #selector(refresh), name: Notification.Name("dataUpdated"), object: nil)
     }
     
-    @IBAction func plusBtnPressd(_ sender: Any) {
-        handleAddImage()
-    }
+//    @IBAction func plusBtnPressd(_ sender: Any) {
+//        handleAddImage()
+//    }
     
     @objc func refresh(){
         print("refresh data")
@@ -50,7 +50,7 @@ class GalleryVC: UIViewController{
         super.viewDidAppear(animated)
         
         // Animate the collection view to its final position
-        UIView.animate(withDuration: 0.5) {
+        UIView.animate(withDuration: 0.6) {
             self.collectionView.frame.origin.x = 30
             self.headingView.frame.origin.x = 30
         }
@@ -68,71 +68,93 @@ extension GalleryVC {
         
     }
     
-    private func handleAddImage(){
-        PHPickerManager.shared.presentPicker(from: self) {[weak self] image in
-            if let image{
-//                DispatchQueue.main.async{
-//                    letimage
-//                    UserModelManager.shared.imageItems.append(Im)
+//    private func handleAddImage(){
+//        PHPickerManager.shared.presentPicker(from: self) {[weak self] image in
+//            if let image{
+////                DispatchQueue.main.async{
+////                    letimage
+////                    UserModelManager.shared.imageItems.append(Im)
+////                }
+//                print("Added ui image")
+//                self?.uploadImage(image: image)
+//            }
+//        }
+//    }
+    
+//    private func uploadImage(image: UIImage){
+//        FirebaseManager().uploadImage(image) {[weak self] url in
+//            if let url{
+//                self?.addImageInfoToFirestore(with: url)
+//            }else{
+//                print("couldn't get url")
+//            }
+//        }
+//    }
+    
+//    private func convertToSections() {
+//        // Step 1: Group ImageItems by dateCreated (ignoring time)
+//        var groupedItems = [Timestamp: [ImageItem]]()
+//        
+//        let imageItems = UserModelManager.shared.imageItems
+//        print("items in imageItems = \(imageItems.count)")
+//        
+//        for item in imageItems {
+//            // Extract the date part of Timestamp and store as Timestamp (ignoring time)
+//            let dateCreated = item.dateCreated
+//            let calendar = Calendar.current
+//            let dateComponents = calendar.dateComponents([.year, .month, .day], from: dateCreated.dateValue())
+//            if let dateOnly = calendar.date(from: dateComponents) {
+//                let dateOnlyTimestamp = Timestamp(date: dateOnly)
+//
+//                if groupedItems[dateOnlyTimestamp] == nil {
+//                    groupedItems[dateOnlyTimestamp] = []
 //                }
-                print("Added ui image")
-                self?.uploadImage(image: image)
-            }
-        }
-    }
+//                groupedItems[dateOnlyTimestamp]?.append(item)
+//            }
+//        }
+//
+//        // Step 2: Initialize an empty array for new sections
+//        var newSections: [(date: Timestamp, images: [ImageItem])] = []
+//        
+//        // Step 3: Loop through each grouped date and split items into sections (max 4 per section)
+//        for (dateOnlyTimestamp, items) in groupedItems {
+//            var remainingItems = items
+//            while !remainingItems.isEmpty {
+//                // Take up to 4 items to create a section
+//                let sectionItems = Array(remainingItems.prefix(4))
+//                newSections.append((date: dateOnlyTimestamp, images: sectionItems))
+//                
+//                // Remove the first 4 items from the remaining items
+//                remainingItems = Array(remainingItems.dropFirst(4))
+//            }
+//        }
+//        // Step 4: Sort sections by Timestamp in reverse chronological order
+//        newSections.sort { $0.date.seconds > $1.date.seconds }
+//
+//        // Step 5: Update the imageSections with the newly created sections
+//        imageSections = newSections
+//    }
     
-    private func uploadImage(image: UIImage){
-        FirebaseManager().uploadImage(image) {[weak self] url in
-            if let url{
-                self?.addImageInfoToFirestore(with: url)
-            }else{
-                print("couldn't get url")
-            }
-        }
-    }
-    
-    private func convertToSections() {
-        // Step 1: Group ImageItems by dateCreated (ignoring time)
-        var groupedItems = [Timestamp: [ImageItem]]()
+    private func convertToSections(){
+        var sections: [String: (date: Timestamp, images: [ImageItem])] = [:]
         
         let imageItems = UserModelManager.shared.imageItems
-        print("items in imageItems = \(imageItems.count)")
         
-        for item in imageItems {
-            // Extract the date part of Timestamp and store as Timestamp (ignoring time)
-            let dateCreated = item.dateCreated
-            let calendar = Calendar.current
-            let dateComponents = calendar.dateComponents([.year, .month, .day], from: dateCreated.dateValue())
-            if let dateOnly = calendar.date(from: dateComponents) {
-                let dateOnlyTimestamp = Timestamp(date: dateOnly)
-
-                if groupedItems[dateOnlyTimestamp] == nil {
-                    groupedItems[dateOnlyTimestamp] = []
-                }
-                groupedItems[dateOnlyTimestamp]?.append(item)
-            }
-        }
-
-        // Step 2: Initialize an empty array for new sections
-        var newSections: [(date: Timestamp, images: [ImageItem])] = []
-        
-        // Step 3: Loop through each grouped date and split items into sections (max 4 per section)
-        for (dateOnlyTimestamp, items) in groupedItems {
-            var remainingItems = items
-            while !remainingItems.isEmpty {
-                // Take up to 4 items to create a section
-                let sectionItems = Array(remainingItems.prefix(4))
-                newSections.append((date: dateOnlyTimestamp, images: sectionItems))
-                
-                // Remove the first 4 items from the remaining items
-                remainingItems = Array(remainingItems.dropFirst(4))
-            }
-        }
-        // Step 4: Sort sections by Timestamp in reverse chronological order
-        newSections.sort { $0.date.seconds > $1.date.seconds }
-
-        // Step 5: Update the imageSections with the newly created sections
-        imageSections = newSections
+           for item in imageItems {
+               if var section = sections[item.sessionId] {
+                   section.images.append(item)
+                   if item.dateCreated.dateValue() < section.date.dateValue() {
+                       section.date = item.dateCreated
+                   }
+                   sections[item.sessionId] = section
+               } else {
+                   sections[item.sessionId] = (date: item.dateCreated, images: [item])
+               }
+           }
+           
+           // Sort images in each section and sort sections
+        imageSections =  sections.values.map { (date: $0.date, images: $0.images.sorted { $0.dateCreated.dateValue() < $1.dateCreated.dateValue() }) }
+            .sorted { $0.date.dateValue() < $1.date.dateValue() }
     }
     
     private func addImageInfoToFirestore(with url: String){
@@ -199,7 +221,7 @@ extension GalleryVC : UICollectionViewDelegate, UICollectionViewDataSource, UICo
         if kind == UICollectionView.elementKindSectionHeader {
             let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "HeaderView", for: indexPath) as! HeaderView
             let section = imageSections[indexPath.section]
-            header.configure(with: section.date.dateValue())
+            header.configure(with: section.date)
             return header
         }
         return UICollectionReusableView()
@@ -215,7 +237,7 @@ extension GalleryVC : UICollectionViewDelegate, UICollectionViewDataSource, UICo
 
     // Set height for section headers
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-        return CGSize(width: collectionView.frame.width, height: 50)
+        return CGSize(width: collectionView.frame.width, height: 20)
     }
 }
 

@@ -19,6 +19,7 @@ class EditProfileVC: UIViewController {
     
     @IBOutlet weak var saveBtn: UIButton!
     
+    lazy var userModel = UserModelManager.shared.userModel!
     var didPhotoChange = false
     
     override func viewDidLoad() {
@@ -55,11 +56,33 @@ extension EditProfileVC {
             lastNameField.text = userModel.lastName
             mobileNumberField.text = userModel.mobileNumber
             
-            if let profileURL = URL(string: userModel.photoURL){
-                profileURL.loadImage {[weak self] image in
-                    if let image{
-                        self?.profileImageView.image = image
-                    }
+            setupProfilePicture()
+        }
+    }
+    
+    private func setupProfilePicture(){
+        guard let userModel = UserModelManager.shared.userModel else {return}
+        let profileURL = userModel.photoURL
+        
+        // checking and applying image from local
+        if let profileImageItem = UserModelManager.shared.imageItems.first(where: { $0.imageUrl == profileURL}) {
+            if let profileImage = UserModelManager.shared.images[profileImageItem.imageId]{
+                self.profileImageView.image = profileImage
+            }
+            else{
+                loadFromLink()
+            }
+        }else{
+            // if image is not available locally
+            loadFromLink()
+        }
+    }
+    
+    private func loadFromLink(){
+        if let profileURL = URL(string: userModel.photoURL){
+            profileURL.loadImage {[weak self] image in
+                if let image{
+                    self?.profileImageView.image = image
                 }
             }
         }

@@ -27,14 +27,11 @@ class UserModelManager {
         didSet{
             print("imageItems updated")
             self.downloadImages()
-          
         }
     }
-    var images: [String : UIImage] = [:]{
-        didSet{
-            NotificationCenter().post(Notification(name: Notification.Name("dataUpdated")))
-        }
-    }
+    
+    var images: [String : UIImage] = [:]
+    
     private init(){}
     
     private func downloadImages() {

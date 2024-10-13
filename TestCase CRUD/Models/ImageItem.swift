@@ -11,4 +11,5 @@ struct ImageItem {
     let imageId : String
     let imageUrl: String
     let dateCreated: Timestamp
+    let sessionId: String
 }

@@ -161,7 +161,9 @@ extension FirebaseManager {
     }
     
     func retrieveImagesFromStorage(completion: @escaping (Bool) ->Void){
+        // temp array to hold images items
         var imageItems = [ImageItem]()
+        
         guard let userId = UserDefaults.standard.string(forKey: "userId") else {
             print("User ID not found")
             return
@@ -174,22 +176,28 @@ extension FirebaseManager {
             if let error = error {
                 print("Error getting documents: \(error)")
                 completion(false)
-            } else {
-                for document in querySnapshot!.documents {
-                    let data = document.data()
-                    if let url = data["imageURL"] as? String,
-                       let createdDate = data["dateCreated"] as? Timestamp {
-                        if let imageId = data["imageId"] as? String{
-                            let item = ImageItem(imageId: imageId, imageUrl: url, dateCreated: createdDate)
-                            imageItems.append(item)
-                        }
-                    }
-                    DispatchQueue.main.async {
-                        UserModelManager.shared.imageItems = imageItems
-                    }
-                    completion(true)
+                return
+            }
+            
+            for document in querySnapshot!.documents {
+                let data = document.data()
+                
+                if let url = data["imageURL"] as? String,
+                    let createdDate = data["dateCreated"] as? Timestamp,
+                    let imageId = data["imageId"] as? String,
+                    let sessionId = data["sessionId"] as? String{
+                        let item = ImageItem(imageId: imageId,
+                                             imageUrl: url,
+                                             dateCreated: createdDate,
+                                             sessionId: sessionId)
+                        imageItems.append(item)
                 }
             }
+            
+            DispatchQueue.main.async {
+                UserModelManager.shared.imageItems = imageItems
+            }
+            completion(true)
         }
     }
 }
